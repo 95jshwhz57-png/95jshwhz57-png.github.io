@@ -1,5 +1,5 @@
 <!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<link rel="icon" href="data:,"><title>สต็อกบ้าน</title><style>
+<link rel="icon" href="data:,"><title>Infinite Peak 1618 · สต็อกวัสดุ</title><style>
 *{box-sizing:border-box}body{margin:0;font-family:system-ui,sans-serif;background:#f3f4f6;color:#111;padding-bottom:70px}
 header{background:#0f766e;color:#fff;padding:14px 16px;font-size:18px;font-weight:700}
 section{display:none;padding:12px}section.active{display:block}
@@ -17,7 +17,7 @@ nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:#fff;border-t
 .seg{display:flex;gap:6px}.seg button{flex:1;padding:12px;border:1px solid #ccc;border-radius:10px;background:#fff;font-size:15px}.seg button.on{background:#0f766e;color:#fff;border-color:#0f766e}
 #toast{position:fixed;top:60px;left:50%;transform:translateX(-50%);background:#111;color:#fff;padding:10px 16px;border-radius:10px;display:none;z-index:9}
 </style></head><body>
-<header id="title">สต็อกบ้าน</header><div id="toast"></div>
+<header id="title">Infinite Peak 1618 · สต็อกวัสดุ</header><div id="toast"></div>
 <section id="home"><div class="big"><button class="bw" onclick="openW()">📤 เบิกของ</button><button class="bp" onclick="openP()">🛒 ซื้อของ</button></div>
 <h3>รายการล่าสุด</h3><div id="recent"></div></section>
 <section id="withdraw"><label class="f">ของ</label><input id="wSearch" placeholder="ค้นหา..." oninput="fillItems('w')"><select id="wItem" onchange="showLeft()"></select><div class="muted" id="wLeft"></div>
@@ -52,7 +52,7 @@ let D;try{D=JSON.parse(localStorage.getItem(KEY))}catch(e){}if(!D)D=seed();
 const save=()=>localStorage.setItem(KEY,JSON.stringify(D));let dest='stock';
 const $=id=>document.getElementById(id);
 function toast(m){const t=$('toast');t.textContent=m;t.style.display='block';clearTimeout(t._h);t._h=setTimeout(()=>t.style.display='none',1800)}
-const titles={home:'สต็อกบ้าน',withdraw:'เบิกของ',purchase:'ซื้อของ',cost:'ต้นทุนตามบ้าน',houseDetail:'ต้นทุนบ้าน',stock:'สต็อก'};
+const titles={home:'Infinite Peak 1618 · สต็อกวัสดุ',withdraw:'เบิกของ',purchase:'ซื้อของ',cost:'ต้นทุนตามบ้าน',houseDetail:'ต้นทุนบ้าน',stock:'สต็อก'};
 function go(t){document.querySelectorAll('section').forEach(s=>s.classList.toggle('active',s.id==t));$('title').textContent=titles[t];
 document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t==t));({home:renderHome,cost:renderCost,stock:renderStock})[t]?.();scrollTo(0,0)}
 function houseOpts(sel){const v=sel.value;sel.innerHTML=D.houses.map(h=>`<option>${h}</option>`).join('')+'<option value="__add">+ เพิ่มบ้าน...</option>';if(D.houses.includes(v))sel.value=v}

@@ -1,0 +1,92 @@
+<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="data:,"><title>สต็อกบ้าน</title><style>
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,sans-serif;background:#f3f4f6;color:#111;padding-bottom:70px}
+header{background:#0f766e;color:#fff;padding:14px 16px;font-size:18px;font-weight:700}
+section{display:none;padding:12px}section.active{display:block}
+.big{display:flex;gap:10px}.big button{flex:1;padding:22px 8px;font-size:20px;border:0;border-radius:14px;color:#fff;font-weight:700}
+.bw{background:#ea580c}.bp{background:#2563eb}
+.card{background:#fff;border-radius:12px;padding:12px;margin:8px 0;box-shadow:0 1px 2px #0002}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px}.muted{color:#666;font-size:13px}
+label.f{display:block;margin:10px 0 4px;font-weight:600}input,select{width:100%;padding:12px;font-size:16px;border:1px solid #ccc;border-radius:10px;background:#fff}
+.qty{display:flex;gap:8px}.qty button{width:56px;font-size:24px;border:0;border-radius:10px;background:#e5e7eb}.qty input{text-align:center}
+.save{width:100%;padding:16px;margin-top:16px;font-size:18px;border:0;border-radius:12px;background:#0f766e;color:#fff;font-weight:700}
+.small{padding:8px 10px;border:0;border-radius:8px;background:#e5e7eb;font-size:14px}
+.photo{display:block;border:2px dashed #aaa;border-radius:10px;padding:14px;text-align:center;color:#555;margin-top:6px}.photo input{display:none}.photo img{max-width:100%;max-height:140px;display:block;margin:6px auto}
+.low{background:#fee2e2}.badge{background:#dc2626;color:#fff;border-radius:6px;padding:2px 6px;font-size:12px}
+nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:#fff;border-top:1px solid #ddd}nav button{flex:1;padding:10px 2px;border:0;background:none;font-size:13px}nav button.on{color:#0f766e;font-weight:700}
+.seg{display:flex;gap:6px}.seg button{flex:1;padding:12px;border:1px solid #ccc;border-radius:10px;background:#fff;font-size:15px}.seg button.on{background:#0f766e;color:#fff;border-color:#0f766e}
+#toast{position:fixed;top:60px;left:50%;transform:translateX(-50%);background:#111;color:#fff;padding:10px 16px;border-radius:10px;display:none;z-index:9}
+</style></head><body>
+<header id="title">สต็อกบ้าน</header><div id="toast"></div>
+<section id="home"><div class="big"><button class="bw" onclick="openW()">📤 เบิกของ</button><button class="bp" onclick="openP()">🛒 ซื้อของ</button></div>
+<h3>รายการล่าสุด</h3><div id="recent"></div></section>
+<section id="withdraw"><label class="f">ของ</label><input id="wSearch" placeholder="ค้นหา..." oninput="fillItems('w')"><select id="wItem" onchange="showLeft()"></select><div class="muted" id="wLeft"></div>
+<label class="f">จำนวน</label><div class="qty"><button onclick="step('wQty',-1)">−</button><input id="wQty" type="number" value="1" min="1"><button onclick="step('wQty',1)">+</button></div>
+<label class="f">บ้าน</label><select id="wHouse" onchange="houseSel(this)"></select>
+<label class="f">ชื่อช่าง (ไม่บังคับ)</label><input id="wWho" placeholder="เช่น ช่างเอ">
+<label class="f">รูป (ไม่บังคับ)</label><label class="photo"><input type="file" accept="image/*" capture="environment" onchange="photoPicked(this)"><span>📷 แตะเพื่อถ่ายรูป</span></label>
+<button class="save" id="wSave" onclick="saveW()">บันทึกการเบิก</button></section>
+<section id="purchase"><label class="f">ของ</label><select id="pItem" onchange="pNewToggle()"></select><input id="pNew" placeholder="ชื่อของใหม่" style="display:none;margin-top:6px"><input id="pUnit" placeholder="หน่วย (เช่น ตัว)" style="display:none;margin-top:6px">
+<label class="f">จำนวน</label><div class="qty"><button onclick="step('pQty',-1)">−</button><input id="pQty" type="number" value="1" min="1"><button onclick="step('pQty',1)">+</button></div>
+<label class="f">ราคาต่อหน่วย (บาท)</label><input id="pPrice" type="number" inputmode="decimal" placeholder="0">
+<label class="f">ซื้อจาก</label><input id="pShop" list="shops" placeholder="เช่น Shopee"><datalist id="shops"><option>Shopee</option><option>HomePro</option><option>ไทวัสดุ</option><option>Global House</option><option>ร้านวัสดุใกล้บ้าน</option></datalist>
+<label class="f">ใช้ที่</label><div class="seg"><button id="toStock" class="on" onclick="setDest('stock')">📦 เข้าสต็อก</button><button id="toHouse" onclick="setDest('house')">🏠 ใช้กับบ้าน</button></div>
+<select id="pHouse" style="display:none;margin-top:6px" onchange="houseSel(this)"></select>
+<div class="muted" id="pTotal" style="margin-top:8px"></div>
+<label class="f">รูปใบเสร็จ (ไม่บังคับ)</label><label class="photo"><input type="file" accept="image/*" capture="environment" onchange="photoPicked(this)"><span>🧾 แตะเพื่อถ่ายใบเสร็จ</span></label>
+<button class="save" id="pSave" onclick="saveP()">บันทึกการซื้อ</button></section>
+<section id="cost"><div id="costList"></div><button class="small" onclick="addHouse()">+ เพิ่มบ้าน</button></section>
+<section id="houseDetail"><button class="small" onclick="go('cost')">← กลับ</button><div id="hdBody"></div></section>
+<section id="stock"><input id="sSearch" placeholder="ค้นหา..." oninput="renderStock()"><div id="stockList"></div></section>
+<nav><button data-t="home" onclick="go('home')">🏠<br>หน้าแรก</button><button data-t="cost" onclick="go('cost')">💰<br>ต้นทุนตามบ้าน</button><button data-t="stock" onclick="go('stock')">📦<br>สต็อก</button></nav>
+<script>
+const KEY='stockapp-v3';const fmt=n=>'฿'+Math.round(n).toLocaleString('th-TH');
+const seed=()=>({houses:['บ้านงามเจริญ2','เขาตาโล3','มิตรยนต์'],items:[
+{id:1,name:'ดาวน์ไลท์ LED 9W',unit:'ตัว',qty:24,cost:89,min:10},{id:2,name:'บานพับประตู สแตนเลส',unit:'ตัว',qty:30,cost:35,min:12},
+{id:3,name:'ลูกบิดประตู',unit:'ชุด',qty:4,cost:250,min:5},{id:4,name:'มือจับก้านโยก',unit:'ชุด',qty:6,cost:420,min:3},
+{id:5,name:'ชุดเตาฝัง+ฮู้ด Kashiwa PSD-308H',unit:'ชุด',qty:1,cost:3736,min:1},{id:6,name:'ปลั๊กไฟ 2 ช่อง',unit:'ตัว',qty:15,cost:65,min:8},
+{id:7,name:'ซิลิโคน (หลอด)',unit:'หลอด',qty:2,cost:95,min:5},{id:8,name:'ก๊อกน้ำอ่างล้างจาน',unit:'ตัว',qty:3,cost:390,min:2}],
+recs:[{t:Date.now()-864e5*2,type:'w',item:'ดาวน์ไลท์ LED 9W',qty:6,amount:534,house:'บ้านงามเจริญ2',who:'ช่างเอ'},
+{t:Date.now()-864e5,type:'p',item:'ชุดเตาฝัง+ฮู้ด Kashiwa PSD-308H',qty:1,amount:3736,house:'บ้านงามเจริญ2',shop:'Shopee'}],nid:9});
+let D;try{D=JSON.parse(localStorage.getItem(KEY))}catch(e){}if(!D)D=seed();
+const save=()=>localStorage.setItem(KEY,JSON.stringify(D));let dest='stock';
+const $=id=>document.getElementById(id);
+function toast(m){const t=$('toast');t.textContent=m;t.style.display='block';clearTimeout(t._h);t._h=setTimeout(()=>t.style.display='none',1800)}
+const titles={home:'สต็อกบ้าน',withdraw:'เบิกของ',purchase:'ซื้อของ',cost:'ต้นทุนตามบ้าน',houseDetail:'ต้นทุนบ้าน',stock:'สต็อก'};
+function go(t){document.querySelectorAll('section').forEach(s=>s.classList.toggle('active',s.id==t));$('title').textContent=titles[t];
+document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t==t));({home:renderHome,cost:renderCost,stock:renderStock})[t]?.();scrollTo(0,0)}
+function houseOpts(sel){const v=sel.value;sel.innerHTML=D.houses.map(h=>`<option>${h}</option>`).join('')+'<option value="__add">+ เพิ่มบ้าน...</option>';if(D.houses.includes(v))sel.value=v}
+function houseSel(sel){if(sel.value=='__add'){const h=addHouse();houseOpts(sel);if(h)sel.value=h;else sel.selectedIndex=0}}
+function addHouse(){const h=(prompt('ชื่อบ้านใหม่')||'').trim();if(!h)return null;if(!D.houses.includes(h)){D.houses.push(h);save();toast('เพิ่มบ้านแล้ว')}if($('cost').classList.contains('active'))renderCost();return h}
+function fillItems(f){const q=($('wSearch').value||'').toLowerCase();const sel=$('wItem');sel.innerHTML=D.items.filter(i=>i.name.toLowerCase().includes(q)).map(i=>`<option value="${i.id}">${i.name} (เหลือ ${i.qty})</option>`).join('');showLeft()}
+function showLeft(){const i=D.items.find(x=>x.id==$('wItem').value);$('wLeft').textContent=i?`เหลือ ${i.qty} ${i.unit} · ทุน ${fmt(i.cost)}/${i.unit}`:'ไม่พบของ'}
+function step(id,d){const e=$(id);e.value=Math.max(1,(+e.value||1)+d);if(id=='pQty')calcP()}
+function resetPhotos(s){s.querySelectorAll('.photo').forEach(l=>{l.querySelector('input').value='';l.querySelector('img')?.remove();const sp=l.querySelector('span');sp.textContent=sp.dataset.o||sp.textContent})}
+function photoPicked(inp){const l=inp.closest('label');const sp=l.querySelector('span');sp.dataset.o=sp.dataset.o||sp.textContent;const f=inp.files&&inp.files[0];if(!f)return;
+let img=l.querySelector('img');if(!img){img=document.createElement('img');l.appendChild(img)}img.src=URL.createObjectURL(f);sp.textContent='✅ แนบรูปแล้ว (แตะเพื่อเปลี่ยน)'}
+function openW(){$('wSearch').value='';fillItems();$('wQty').value=1;$('wWho').value='';houseOpts($('wHouse'));resetPhotos($('withdraw'));go('withdraw')}
+function saveW(){const i=D.items.find(x=>x.id==$('wItem').value),q=+$('wQty').value,h=$('wHouse').value;
+if(!i)return toast('เลือกของก่อน');if(!(q>0))return toast('ใส่จำนวน');if(!D.houses.includes(h))return toast('เลือกบ้าน');
+if(q>i.qty&&!confirm(`สต็อกมีแค่ ${i.qty} ยืนยันเบิก ${q}?`))return;
+i.qty-=q;D.recs.push({t:Date.now(),type:'w',item:i.name,qty:q,amount:q*i.cost,house:h,who:$('wWho').value.trim(),photo:!!$('withdraw').querySelector('.photo input').files.length});save();toast('บันทึกการเบิกแล้ว');go('home')}
+function pNewToggle(){const n=$('pItem').value=='__new';$('pNew').style.display=$('pUnit').style.display=n?'block':'none';const i=D.items.find(x=>x.id==$('pItem').value);if(i)$('pPrice').value=i.cost;calcP()}
+function setDest(d){dest=d;$('toStock').classList.toggle('on',d=='stock');$('toHouse').classList.toggle('on',d=='house');$('pHouse').style.display=d=='house'?'block':'none'}
+function calcP(){$('pTotal').textContent='รวม '+fmt((+$('pQty').value||0)*(+$('pPrice').value||0))}
+function openP(){$('pItem').innerHTML='<option value="__new">+ ของใหม่...</option>'+D.items.map(i=>`<option value="${i.id}">${i.name}</option>`).join('');$('pItem').value=D.items[0]?.id||'__new';
+$('pNew').value='';$('pUnit').value='';$('pQty').value=1;$('pShop').value='';houseOpts($('pHouse'));setDest('stock');resetPhotos($('purchase'));pNewToggle();go('purchase')}
+function saveP(){const q=+$('pQty').value,pr=+$('pPrice').value;let i;
+if($('pItem').value=='__new'){const n=$('pNew').value.trim();if(!n)return toast('ใส่ชื่อของ');i=D.items.find(x=>x.name==n);if(!i){i={id:D.nid++,name:n,unit:$('pUnit').value.trim()||'ชิ้น',qty:0,cost:pr,min:1};D.items.push(i)}}else i=D.items.find(x=>x.id==$('pItem').value);
+if(!(q>0))return toast('ใส่จำนวน');if(!(pr>=0)||$('pPrice').value==='')return toast('ใส่ราคา');
+const r={t:Date.now(),type:'p',item:i.name,qty:q,amount:q*pr,shop:$('pShop').value.trim(),photo:!!$('purchase').querySelector('.photo input').files.length};
+if(dest=='stock'){const tot=i.qty*i.cost+q*pr;i.qty+=q;i.cost=i.qty?tot/i.qty:pr;r.house=null}else{const h=$('pHouse').value;if(!D.houses.includes(h))return toast('เลือกบ้าน');r.house=h}
+D.recs.push(r);save();toast('บันทึกการซื้อแล้ว');go('home')}
+$('pPrice').oninput=calcP;$('pQty').oninput=calcP;
+function recHtml(r){const d=new Date(r.t).toLocaleString('th-TH',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+return `<div class="card"><div class="row"><b>${r.type=='w'?'📤 เบิก':'🛒 ซื้อ'} ${r.item} ×${r.qty}</b><span>${fmt(r.amount)}</span></div><div class="muted">${d} · ${r.house?'🏠 '+r.house:'📦 เข้าสต็อก'}${r.who?' · '+r.who:''}${r.shop?' · '+r.shop:''}${r.photo?' · 📷':''}</div></div>`}
+function renderHome(){$('recent').innerHTML=D.recs.slice().reverse().slice(0,15).map(recHtml).join('')||'<div class="muted">ยังไม่มีรายการ</div>'}
+function houseTotal(h){return D.recs.filter(r=>r.house==h).reduce((s,r)=>s+r.amount,0)}
+function renderCost(){$('costList').innerHTML=D.houses.map((h,k)=>`<div class="card row" onclick="showHouse(${k})"><b>🏠 ${h}</b><span>${fmt(houseTotal(h))} ›</span></div>`).join('')}
+function showHouse(k){const h=D.houses[k];const rs=D.recs.filter(r=>r.house==h).reverse();$('hdBody').innerHTML=`<h3>${h}</h3><div class="card row"><b>รวม</b><b id="hdTotal">${fmt(houseTotal(h))}</b></div>`+(rs.map(recHtml).join('')||'<div class="muted">ยังไม่มีรายการ</div>');go('houseDetail');$('title').textContent=h}
+function renderStock(){const q=($('sSearch').value||'').toLowerCase();$('stockList').innerHTML=D.items.filter(i=>i.name.toLowerCase().includes(q)).sort((a,b)=>(a.qty<=a.min?0:1)-(b.qty<=b.min?0:1)).map(i=>`<div class="card row ${i.qty<=i.min?'low':''}" data-id="${i.id}"><div><b>${i.name}</b><div class="muted">ทุน ${fmt(i.cost)}/${i.unit}${i.qty<=i.min?' · <span class="badge">ใกล้หมด</span>':''}</div></div><b class="q">${i.qty} ${i.unit}</b></div>`).join('')}
+go('home');
+</script></body></html>
